@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星载 CAN 总线审查 · 逐位回放</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header>
+  <h1>星载载荷 CAN 总线 · 间歇性告警审查回放</h1>
+  <div class="sub">CAN 2.0A 标准数据帧 · 逐位仲裁 / 位填充 / CRC-15 / ACK / 错误界定 / TEC·bus-off 恢复</div>
+</header>
+
+<main>
+<section class="card">
+  <h2>1. 节点与初始发送错误计数（至多 4 个节点）</h2>
+  <div id="nodes" class="nodes"></div>
+</section>
+
+<section class="card">
+  <h2>2. 帧请求（按时刻排列，至多 24 条标准数据帧）</h2>
+  <div class="tablewrap">
+  <table id="req-table">
+    <thead>
+      <tr>
+        <th>#</th><th>时刻</th><th>节点</th><th>ID (0x000-0x7FF)</th>
+        <th>DLC</th><th>数据 (HEX，空格/逗号分隔)</th>
+        <th>错误标注</th><th>数据位位置</th><th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <div class="row">
+    <button type="button" id="add-row">＋ 添加请求</button>
+    <button type="button" id="load-sample">载入示例场景</button>
+    <button type="button" class="primary" id="run">▶ 运行回放</button>
+    <span id="global-error" class="global-error"></span>
+  </div>
+</section>
+
+<section id="results" class="hidden">
+  <h2>3. 回放结论</h2>
+  <div id="summary" class="summary"></div>
+  <div id="rejections"></div>
+  <div id="recoveries"></div>
+  <div id="frames"></div>
+</section>
+</main>
+
+<template id="frame-tpl">
+  <div class="card frame-card">
+    <div class="frame-head">
+      <span class="frame-title"></span>
+      <span class="badge"></span>
+      <button type="button" class="toggle-trace">展开位序轨迹</button>
+    </div>
+    <div class="frame-body"></div>
+    <div class="trace hidden">
+      <div class="player">
+        <button type="button" class="play">⏵ 逐位播放</button>
+        <button type="button" class="step-back">◀ 上一位</button>
+        <button type="button" class="step-fwd">下一位 ▶</button>
+        <span class="cursor"></span>
+      </div>
+      <div class="wave" aria-label="总线波形"></div>
+      <div class="tablewrap">
+      <table class="trace-table">
+        <thead><tr>
+          <th>位序</th><th>时刻</th><th>字段</th><th>字段位</th>
+          <th>填充</th><th>发送/仲裁</th><th>总线</th><th>驱动节点</th><th>说明</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

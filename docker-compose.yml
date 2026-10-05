@@ -1,0 +1,29 @@
+# 星载 CAN 总线审查回放：宿主端口可通过 HOST_PORT 配置（默认 8080）
+services:
+  web:
+    build: .
+    image: can-review:latest
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8080"
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2).status==200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
+
+  # 一次性验收服务：构建检查 + 单元测试 + 页面/健康冒烟 +
+  # 正常仲裁 / 被动错误 / bus-off 恢复场景验收；结束即退出，退出码即结论
+  verify:
+    image: can-review:latest
+    build: .
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      PYTHONPATH: /srv/app
+    entrypoint: ["python", "-m", "cansim.verify", "--base-url", "http://web:8080"]
+    restart: "no"
